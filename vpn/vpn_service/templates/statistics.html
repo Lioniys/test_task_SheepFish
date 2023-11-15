@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+  <h2>Статистика ваших сайтів</h2>
+  {% if user_sites %}
+    <ul>
+      {% for site in user_sites %}
+        <li>{{ site.name }} <p>page_views - {{site.page_views}},
+          data_sent - {{site.data_sent}}, data_received - {{site.data_received}}</p></li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>Ви ще не створили жодного сайту.</p>
+  {% endif %}
+</body>
+</html>

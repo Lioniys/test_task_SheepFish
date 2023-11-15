@@ -1,0 +1,30 @@
+<!-- base.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}vpn{% endblock %}</title>
+</head>
+<body>
+<h3><a href="{% url 'statistics' %}">Статистика</a></h3>
+    <h2>Список ваших сайтів</h2>
+  {% if user_sites %}
+    <ul>
+      {% for site in user_sites %}
+        <li><a href="{% url 'proxy_view' site.name %}">{{site.name}}</a></li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>Ви ще не створили жодного сайту.</p>
+  {% endif %}
+<h2>Додати новий сайт</h2>
+  <form method="post" action="{% url 'profile' %}">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Додати сайт</button>
+  </form>
+<h3><a href="{% url 'logout' %}">виход</a></h3>
+</body>
+</html>
