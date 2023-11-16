@@ -1,12 +1,11 @@
+import requests
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import login
+from django.contrib.auth import login, logout
 from .forms import SignUpForm, UserSiteForm
-from django.contrib.auth import logout
 from .models import Site
-from bs4 import BeautifulSoup
-import requests
+from .services import modify_content
 
 
 @login_required
@@ -15,18 +14,22 @@ def proxy_view(request, user_site_name, routes_on_original_site=''):
     params = request.GET if method == 'GET' else request.POST
     data = request.body if method in ['POST', 'PUT', 'PATCH'] else None
     site = Site.objects.get(user=request.user, name=user_site_name)
-    if method in ['POST', 'PUT', 'PATCH']:
+    if data:
         site.data_sent += len(request.body)
     site.page_views += 1
+
     original_url = routes_on_original_site if routes_on_original_site else site.url
     response = requests.request(method, original_url, params=params, data=data)
+
     site.data_received += len(response.content)
     site.save()
-    soup = BeautifulSoup(response.content, 'html.parser')
-    for a_tag in soup.find_all('a', href=True):
-        a_tag['href'] = f"http://localhost:8000/proxyy/{user_site_name}/{a_tag['href']}"
-    proxy_response = HttpResponse(str(soup), content_type=response.headers['content-type'])
-    proxy_response.status_code = response.status_code
+
+    modified_content = modify_content(response=response, user_site_name=user_site_name)
+
+    proxy_response = HttpResponse(
+        str(modified_content),
+        content_type=response.headers['content-type'],
+        status=response.status_code)
     return proxy_response
 
 
